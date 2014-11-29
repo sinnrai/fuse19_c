@@ -1,0 +1,11 @@
+.DS_STORE
+build/*
+*.xcworkspace
+!default.xcworkspace
+xcuserdata
+profile
+*.moved-aside
+!default.pbxuser
+assets/
+.xccheckout
+UserInterfaceState.xcuserstate
