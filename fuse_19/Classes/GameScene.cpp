@@ -12,7 +12,8 @@
 GameLayer::GameLayer():
 m_pChara(nullptr),
 m_stageNo(0),
-m_time(0)
+m_time(0),
+m_isCleared(false)
 {
     for (int i = 0; i < 3; i++) {
         m_sliderValue[i] = 0;
@@ -46,17 +47,8 @@ bool GameLayer::init(int stageNo)
     
     for (int i = 0; i < 3; i++) {
         if (i < m_stageNo) {
-            switch (i) {
-                case 0:
-//                    m_answer[0] =  cos(M_PI * m_time * 2 + ((rand() % 5) + 1));
-                    break;
-                case 1:
-                    break;
-                case 2:
-                    break;
-                default:
-                    break;
-            }
+            srand(time(NULL));
+            m_answer[i] = (rand() % 5) + 1;
             auto pSprite = Sprite::create("res/ControlBox_288x112.png");
             pSprite->setPosition(pSprite->getContentSize().width * 0.5 + 300 * i, 100);
             this->addChild(pSprite);
@@ -68,6 +60,7 @@ bool GameLayer::init(int stageNo)
             pControlSlider->setMaximumValue(5);
             pControlSlider->setValue(3);
             pControlSlider->setTag(i);
+            m_sliderValue[i] = pControlSlider->getValue();
             pSprite->addChild(pControlSlider);
         }
     }
@@ -112,16 +105,27 @@ void GameLayer::onTouchEnd(cocos2d::Touch *pTouch, cocos2d::Event *pEvent)
 void GameLayer::update(float dt)
 {
     m_time += dt;
-    float sign1 = sin(M_PI * m_time * 2 - m_sliderValue[0]);
-    float sign2 = m_sliderValue[1] * sin(2 * M_PI * m_time);
-    float sign3 = sin(m_sliderValue[2] * M_PI * m_time);
-    CCLOG("Sign1 %f, sign2 %f, sign3 %f", sign1, sign2, sign3);
-    CCLOG("answer1 %f", m_answer[0]);
-//    if (sign1 - sign == 0) {
-//        CCLOG("GameClear" );
-//    } else {
-        m_pChara->setPositionY(m_pChara->getPositionY() + sign1 + sign2 + sign3 + m_answer[0] + m_answer[1] + m_answer[2]);
-//    }
+    if (m_isCleared == false) {
+        float sign = m_sliderValue[0] * (sin( m_sliderValue[2] * m_time - m_sliderValue[1]));
+        float sign2 = (m_answer[0] * (sin( m_answer[2] * m_time - m_answer[1])));
+        
+        if (sign - sign2 == 0) {
+            this->gameClear();
+        } else {
+            m_pChara->setPositionY(m_pChara->getPositionY() + sign - sign2);
+            if (m_pChara->getContentSize().height * 0.5 + m_pChara->getPosition().y >= 750) {
+                m_pChara->setPositionY(750 - m_pChara->getContentSize().height * 0.5);
+            }
+        }
+    }
+}
+
+void GameLayer::gameClear()
+{
+    m_isCleared = true;
+    auto pLabel = Label::create("GameClear", "", 30);
+    pLabel->setPosition(this->getContentSize().width * 0.5, this->getContentSize().height * 0.5);
+    this->addChild(pLabel);
 }
 
 void GameLayer::onVolumeChangeSlider(cocos2d::Ref *pSender, Control::EventType event)
@@ -129,7 +133,7 @@ void GameLayer::onVolumeChangeSlider(cocos2d::Ref *pSender, Control::EventType e
     ControlSlider* pControlSlider = dynamic_cast<ControlSlider*>(pSender);
     
     int tag = pControlSlider->getTag();
-    m_sliderValue[tag - 1] = floor(pControlSlider->getValue());
+    m_sliderValue[tag] = floor(pControlSlider->getValue());
 }
 
 void GameLayer::onClickBackButton(cocos2d::Ref *pSender, Control::EventType event)

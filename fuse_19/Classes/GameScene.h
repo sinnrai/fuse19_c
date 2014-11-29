@@ -23,6 +23,7 @@ private:
     Sprite* m_pChara;
     float m_time;
     float m_answer[3];
+    bool m_isCleared;
 public:
     GameLayer();
     ~GameLayer();
@@ -37,6 +38,8 @@ public:
     void onTouchEnd(Touch* pTouch, Event * pEvent);
     
     void update(float dt);
+    
+    void gameClear();
     
     void onVolumeChangeSlider(Ref* pSender, Control::EventType event);
     
